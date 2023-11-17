@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firebase_version9_RealtimeDB(G'sACADEMY初学者用サンプル)</title>
+    <link rel="stylesheet" href="css/reset.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+    <h1>チャットアプリ</h1>
+    <!-- コンテンツ表示画面 -->
+    <div>
+        <!-- 各場所にidを設定しましょう -->
+        <div>
+            <input id="uname" type="text" placeholder="名前を入力してください">
+        </div>
+        <div>
+        <select example="example">
+            <option>10代以下</option>
+            <option>20代</option>
+            <option>30代</option>
+            <option>40代</option>
+            <option>50代</option>
+            <option>60代以上</option>
+            </select>
+        </div>
+        <div>
+            <input id="date" type="datetime-local" placeholder="日付を入力してください">
+        </div>
+        <div>
+            <textarea id="text" placeholder="文章を入力してください"></textarea>
+        </div>
+        <button id="send">送信</button>
+        <!-- style.cssに "overflow: auto;"を書いてみましょう！※最後に -->
+        <div id="output"></div>
+    </div>
+
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.1.0/firebase-app.js";
+        import { getDatabase, ref, push, set, onChildAdded, remove, onChildRemoved }
+            from "https://www.gstatic.com/firebasejs/9.1.0/firebase-database.js";
+        // Your web app's Firebase configuration
+
+
+        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+        const firebaseConfig = {
+            apiKey: "AIzaSyBZiTkeQgEvu8NfGjGUYAtomp3q4W6bzTI",
+            authDomain: "gsdev26us07-4f174.firebaseapp.com",
+            projectId: "gsdev26us07-4f174",
+            storageBucket: "gsdev26us07-4f174.appspot.com",
+            messagingSenderId: "893272484093",
+            appId: "1:893272484093:web:d044a70c181ca398277694",
+            measurementId: "G-HPTYKCPX8L"
+        };
+
+
+        const app = initializeApp(firebaseConfig);//鍵を開けるコマンド
+        const db = getDatabase(app); //開けた後にRealtimeDBに接続
+        const dbRef = ref(db, "chat"); //RealtimeDB内の"chat（←名前変えられる）"を使う
+
+        //データ登録(Click)
+        $('#send').on('click', function () {
+            const uname = $('#uname').val();
+            const example = $('#example').val();
+            const text = $('#text').val();
+            const date = $('#date').val();
+
+            //まずはコンソールで入力された文字が取得できるか確認
+            console.log(uname, 'unameの文字')
+            console.log(text, 'textの文字')
+
+
+            //aaは鍵。実際に使うときはuname:uname, のように鍵と中身を同じにする。（他人が見た時にわかりやすいように）
+            //msg＝message
+            const msg = {
+                uname: uname,
+                example: example,
+                text: text,
+                date: date,
+            }
+
+            //firebaseにデータを送る処理
+            //pushはfirebaseが用意したおまじない。（jsが用意したおまじないと混同しないこと。）
+            //newPostRefはなんでもいい。重要なのはpush(dbRef)これで送れる
+            const newPostRef = push(dbRef);
+            
+            //setはfirebaseが用意したおまじない jsが用意したおまじないと混同しないこと。丸ごと送りますよのコード。
+            set(newPostRef, msg);
+
+
+            //送信を押したら入力された文字を消すには？
+            $('#uname').val("")
+            $('#example').val("")
+            $('#data').val("")
+            $('#text').val("");
+
+            // この下は消さない
+        })
+
+        //データ登録(Enter)
+
+        //最初にデータ取得＆onSnapshotでリアルタイムにデータを取得。dataは他の人が見た時にわかるための仮の名前。
+
+        onChildAdded(dbRef, function(data){
+            const msg = data.val();
+            const key = data.key;
+            console.log(msg)
+
+  
+            let html = `
+              <div class=${key}>
+                <p>名前：${msg.uname}</p>
+                <p>年代：${msg.example}</p>
+                <p>日付：${msg.date}</p>
+                <p>本文：${msg.text}</p>
+             
+               </div> 
+                `
+        
+                //画面に表示するために埋め込む
+                $('#output').append(html)
+        
+        })
+
+    </script>
+</body>
+
+</html>
